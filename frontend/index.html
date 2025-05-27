@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Estacionamiento</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 class="main-title">Sistema de Estacionamiento</h1>
+      <p class="subtitle">Control de entradas y salidas de vehículos</p>
+    </header>
+    
+    <!-- Panel de estadísticas -->
+    <div class="stats-panel">
+      <div class="stat-box">
+        <div class="stat-value" id="vehiculos-activos">0</div>
+        <div class="stat-label">Vehículos Activos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="total-dia">0</div>
+        <div class="stat-label">Total del Día</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="ingresos-dia">$0.00</div>
+        <div class="stat-label">Ingresos del Día</div>
+      </div>
+    </div>
+    
+    <div class="dashboard">
+      <div class="card-container">
+        <div class="card">
+          <div class="card-header">
+            <h2>Registro de Entrada</h2>
+          </div>
+          <form id="entradaForm" class="form">
+            <div class="form-group">
+              <label for="nombre">Nombre del Conductor:</label>
+              <input type="text" id="nombre" required placeholder="Ingrese nombre completo" class="input">
+              <span class="error-message" id="nombre-error"></span>
+            </div>
+            
+            <div class="form-group">
+              <label for="placa">Número de Placa:</label>
+              <input type="text" id="placa" required placeholder="Ej. ABC-123" class="input" maxlength="8">
+              <span class="error-message" id="placa-error"></span>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+              <button type="reset" class="btn btn-secondary">Limpiar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Registro de Salida</h2>
+          </div>
+          <form id="salidaForm" class="form">
+            <div class="form-group">
+              <label for="salida_placa">Número de Placa:</label>
+              <input type="text" id="salida_placa" required placeholder="Ej. ABC-123" class="input" maxlength="8">
+              <span class="error-message" id="salida-placa-error"></span>
+            </div>
+            
+            <div class="form-group info-box">
+              <p>Tarifa mínima: $10.00</p>
+              <p>Tiempo de gracia: 15 minutos</p>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="submit" class="btn btn-primary">Registrar Salida</button>
+              <button type="reset" class="btn btn-secondary">Limpiar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card registro-card">
+        <div class="card-header">
+          <h2>Historial de Registros</h2>
+          <div class="card-actions">
+            <select id="filtro-fecha" class="input input-sm">
+              <option value="hoy">Hoy</option>
+              <option value="ayer">Ayer</option>
+              <option value="semana">Esta semana</option>
+              <option value="mes">Este mes</option>
+              <option value="todos">Todos</option>
+            </select>
+            <button id="refresh-button" class="btn btn-refresh">Actualizar</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="registrosTable" class="registros-table">
+            <thead>
+              <tr>
+                <th>Conductor</th>
+                <th>Placa</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Tiempo</th>
+                <th>Costo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="registros">
+              <tr>
+                <td colspan="8" class="text-center">Cargando registros...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para mostrar resultados -->
+    <div id="resultModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 id="modal-title">Resultado</h2>
+        <div id="modal-content"></div>
+        <button id="modal-confirm" class="btn btn-primary">Aceptar</button>
+      </div>
+    </div>
+
+    <!-- Notificación toast -->
+    <div id="toast" class="toast">
+      <div id="toast-message">Mensaje de notificación</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Sistema de Estacionamiento - Todos los derechos reservados</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
