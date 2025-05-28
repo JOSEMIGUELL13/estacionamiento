@@ -18,12 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const toastMessage = document.getElementById("toast-message")
   const filtroFecha = document.getElementById("filtro-fecha")
 
-  // Detectar entorno y configurar API URL
-  const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
-  const API_URL = isProduction ? `${window.location.origin}/api/parking` : "http://localhost:5000/api/parking"
-  
-  console.log('Entorno:', isProduction ? 'Producción' : 'Desarrollo')
-  console.log('API URL:', API_URL)
+  // Definir la API URL base
+  const API_URL = "http://localhost:5000/api/parking"
 
   // Inicializar
   init()
