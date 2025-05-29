@@ -71,10 +71,18 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
+  // Función auxiliar para obtener fecha local en formato YYYY-MM-DD
+  function obtenerFechaLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function cargarEstadisticas() {
     try {
-      // Obtener fecha actual formateada para la consulta (YYYY-MM-DD)
-      const hoy = new Date().toISOString().split("T")[0]
+      // Obtener fecha actual formateada para la consulta (YYYY-MM-DD) usando fecha local
+      const hoy = obtenerFechaLocal(new Date());
 
       // Hacer la petición a la API para obtener estadísticas del día
       fetch(`${API_URL}/por-dia?fecha=${hoy}`)
@@ -300,21 +308,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Función para obtener los parámetros de fecha según el filtro seleccionado
+  // Función para obtener los parámetros de fecha según el filtro seleccionado (CORREGIDA)
   function obtenerParametrosFecha(filtro) {
     const hoy = new Date()
     let fechaInicio, fechaFin
 
     switch (filtro) {
       case "hoy":
-        // Formato YYYY-MM-DD para el día actual
-        return { fecha: hoy.toISOString().split("T")[0] }
+        // Usar fecha local en lugar de UTC
+        return { fecha: obtenerFechaLocal(hoy) }
 
       case "ayer":
-        // Fecha de ayer
+        // Fecha de ayer usando fecha local
         const ayer = new Date(hoy)
         ayer.setDate(hoy.getDate() - 1)
-        return { fecha: ayer.toISOString().split("T")[0] }
+        return { fecha: obtenerFechaLocal(ayer) }
 
       case "semana":
         // Inicio de la semana (lunes)
@@ -327,8 +335,8 @@ document.addEventListener("DOMContentLoaded", () => {
         fechaFin.setDate(fechaInicio.getDate() + 6)
 
         return {
-          fecha_inicio: fechaInicio.toISOString().split("T")[0],
-          fecha_fin: fechaFin.toISOString().split("T")[0],
+          fecha_inicio: obtenerFechaLocal(fechaInicio),
+          fecha_fin: obtenerFechaLocal(fechaFin),
         }
 
       case "mes":
@@ -339,8 +347,8 @@ document.addEventListener("DOMContentLoaded", () => {
         fechaFin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
 
         return {
-          fecha_inicio: fechaInicio.toISOString().split("T")[0],
-          fecha_fin: fechaFin.toISOString().split("T")[0],
+          fecha_inicio: obtenerFechaLocal(fechaInicio),
+          fecha_fin: obtenerFechaLocal(fechaFin),
         }
 
       case "todos":

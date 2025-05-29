@@ -104,7 +104,7 @@ router.post('/salida', async (req, res) => {
   }
 });
 
-// Obtener todos los registros 
+// Obtener todos los registros (CORREGIDO)
 router.get('/', async (req, res) => {
   try {
     const { fecha, fecha_inicio, fecha_fin } = req.query;
@@ -114,28 +114,20 @@ router.get('/', async (req, res) => {
     console.log('Parámetros recibidos:', req.query);
     
     if (fecha) {
-      // Filtrar por un día específico 
+      // Filtrar por un día específico usando DATE() - Más eficiente y preciso
       query = `SELECT * FROM registros 
-               WHERE YEAR(hora_entrada) = ? 
-               AND MONTH(hora_entrada) = ? 
-               AND DAY(hora_entrada) = ? 
+               WHERE DATE(hora_entrada) = ?
                ORDER BY hora_entrada DESC`;
       
-      const fechaObj = new Date(fecha);
-      const año = fechaObj.getFullYear();
-      const mes = fechaObj.getMonth() + 1;
-      const dia = fechaObj.getDate();
-      
-      params = [año, mes, dia];
-      console.log(`Filtrando por fecha específica: ${año}-${mes}-${dia}`);
+      params = [fecha];
+      console.log(`Filtrando por fecha específica: ${fecha}`);
     } else if (fecha_inicio && fecha_fin) {
-      // Filtrar por rango de fechas
+      // Filtrar por rango de fechas usando comparación directa
       query = `SELECT * FROM registros 
-               WHERE hora_entrada >= ? 
-               AND hora_entrada <= DATE_ADD(?, INTERVAL 1 DAY)
+               WHERE DATE(hora_entrada) >= ? 
+               AND DATE(hora_entrada) <= ?
                ORDER BY hora_entrada DESC`;
       
-      // Asegurarse de que fecha_fin incluya todo el día
       params = [fecha_inicio, fecha_fin];
       console.log('Filtrando por rango de fechas:', fecha_inicio, 'a', fecha_fin);
     } else {
@@ -183,39 +175,50 @@ router.get('/activos', async (req, res) => {
   }
 });
 
-// Obtener estadísticas por día 
+// Obtener estadísticas por día (CORREGIDO)
 router.get('/por-dia', async (req, res) => {
   const { fecha } = req.query;
   
-  // Si no se proporciona fecha
-  const fechaConsulta = fecha ? new Date(fecha) : new Date();
+  // Si no se proporciona fecha, usar la fecha actual (local)
+  let fechaConsulta;
+  if (fecha) {
+    fechaConsulta = fecha;
+  } else {
+    // Obtener fecha actual en formato local YYYY-MM-DD
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    fechaConsulta = `${year}-${month}-${day}`;
+  }
   
-  // Formatear fecha para consulta SQL (YYYY-MM-DD)
-  const fechaFormateada = fechaConsulta.toISOString().split('T')[0];
+  console.log('Consultando estadísticas para la fecha:', fechaConsulta);
   
   try {
-    // Obtener registros del día
+    // Obtener registros del día usando DATE() para comparación
     const [registros] = await db.query(
       `SELECT * FROM registros 
-       WHERE DATE(hora_entrada) = ? 
+       WHERE DATE(hora_entrada) = ?
        ORDER BY hora_entrada DESC`,
-      [fechaFormateada]
+      [fechaConsulta]
     );
     
-    // Obtener estadísticas
+    // Obtener estadísticas usando DATE() para comparación
     const [[estadisticas]] = await db.query(
       `SELECT 
         COUNT(*) as total_vehiculos,
         SUM(CASE WHEN hora_salida IS NULL THEN 1 ELSE 0 END) as vehiculos_activos,
         SUM(CASE WHEN hora_salida IS NOT NULL THEN 1 ELSE 0 END) as vehiculos_completados,
-        SUM(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE 0 END) as ingresos_totales
+        COALESCE(SUM(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE 0 END), 0) as ingresos_totales
        FROM registros 
        WHERE DATE(hora_entrada) = ?`,
-      [fechaFormateada]
+      [fechaConsulta]
     );
     
+    console.log('Estadísticas calculadas:', estadisticas);
+    
     res.json({
-      fecha: fechaFormateada,
+      fecha: fechaConsulta,
       estadisticas,
       registros
     });
@@ -240,7 +243,7 @@ router.get('/resumen-mensual', async (req, res) => {
       `SELECT 
         DATE(hora_entrada) as fecha,
         COUNT(*) as total_vehiculos,
-        SUM(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE 0 END) as ingresos
+        COALESCE(SUM(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE 0 END), 0) as ingresos
        FROM registros 
        WHERE MONTH(hora_entrada) = ? AND YEAR(hora_entrada) = ?
        GROUP BY DATE(hora_entrada)
@@ -252,8 +255,8 @@ router.get('/resumen-mensual', async (req, res) => {
     const [[estadisticasMensuales]] = await db.query(
       `SELECT 
         COUNT(*) as total_vehiculos,
-        SUM(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE 0 END) as ingresos_totales,
-        AVG(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE NULL END) as ingreso_promedio
+        COALESCE(SUM(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE 0 END), 0) as ingresos_totales,
+        COALESCE(AVG(CASE WHEN hora_salida IS NOT NULL THEN costo ELSE NULL END), 0) as ingreso_promedio
        FROM registros 
        WHERE MONTH(hora_entrada) = ? AND YEAR(hora_entrada) = ?`,
       [mesConsulta, anioConsulta]
